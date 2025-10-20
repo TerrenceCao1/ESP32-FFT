@@ -34,9 +34,9 @@ typedef struct fft_config_t
  */
 fft_config_t* fft_init(int size, float* inputBuff, float* outputBuff);
 
-void fft_execute(fft_config_t*); 
+void fft_execute(fft_config_t* fft); 
 
-void fft_free(fft_config_t*);
+void fft_free(fft_config_t* fft);
 
 
 #endif //FFT_H
