@@ -33,6 +33,17 @@ fft_config_t* fft_init(int size, float* inputBuff, float* outputBuff)
 	{
 		conf->output = (float*)malloc(conf->size * sizeof(float));
 	}
+	
+	//allocate and compute twiddle values
+	conf->twiddleFactors = (float*)malloc(conf->size * 2 * sizeof(float)); /*1 float for real, one for imaginary per bin*/
+
+	for(int k = 0; k < conf->size; k++)
+	{
+		//real
+		conf->twiddleFactors[2 * k] = cosf(2 * PI * k / conf->size);
+		//imaginary
+		conf->twiddleFactors[2 * k + 1] = sinf(-2 * PI * k / conf->size);
+	}
 
 	return conf;
 }
@@ -41,5 +52,25 @@ void fft_free(fft_config_t* fft)
 {
 	free(fft->input);
 	free(fft->output);
+	free(fft->twiddleFactors);
 	free(fft);
+}
+
+
+void dft_execute(fft_config_t* fft)
+{
+	for(int bin = 0; bin < fft->size / 2; bin++)
+	{
+		float realComp = 0;
+		float imagComp = 0;
+
+		for(int i = 0; i < fft->size; i++)
+		{
+			realComp += fft->input[i] * (cosf(2 * PI * bin * i / fft->size));
+			imagComp += fft->input[i] * (sinf(2 * PI * bin * i / fft->size));
+		}
+
+		fft->output[2 * bin] = realComp;
+		fft->output[2 * bin + 1] = imagComp;
+	}
 }
