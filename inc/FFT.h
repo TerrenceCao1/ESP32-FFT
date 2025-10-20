@@ -1,7 +1,6 @@
 #ifndef FFT_H
 #define FFT_H
 
-//custom library for a real forward FFT 
 #include <stdio.h>
 #include <complex.h>
 #include <math.h>
@@ -14,6 +13,7 @@ typedef struct fft_config_t
 	int size; //must be power of 2
 	float* input;
 	float* output;
+	float* twiddleFactors;
 }fft_config_t;
 
 /* 
@@ -34,8 +34,40 @@ typedef struct fft_config_t
  */
 fft_config_t* fft_init(int size, float* inputBuff, float* outputBuff);
 
+/*
+ * @brief	Naive implementation of Real Valued DFT
+ *
+ *			Computes the discrete Fourier Transform (in N^2 time)
+ *
+ * @param	fft - pointer to fft_config_t which the FFT will be performed on
+ *
+ * @return	void (but the fft->output will be filled)
+ *
+ */
+void dft_execute(fft_config_t* fft);
+
+/*
+ * @brief	Real Fast Fourier Transform
+ *
+ *			Computes real FFT (in N(logN) time)
+ * 
+ * @param	fft - pointer to fft_config_t to be FFT'd
+ *
+ * @return	void (but the fft->output will be filled)
+ *
+ */
 void fft_execute(fft_config_t* fft); 
 
+/*
+ * @brief	Frees all memory allocated by fft_init
+ *
+ *			Frees the input buffer, output buffer, twiddle buffer
+ *
+ * @param	fft - pointer to fft_config_t to be destroyed
+ *
+ * @return	void
+ * 
+ */
 void fft_free(fft_config_t* fft);
 
 
