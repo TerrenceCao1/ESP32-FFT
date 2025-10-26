@@ -6,7 +6,7 @@
 #include <math.h>
 #include <stdlib.h>
 
-#define PI 3.1415926538979323
+#define PI 3.1415926538979323846264f
 
 typedef struct fft_config_t
 {
@@ -41,7 +41,7 @@ fft_config_t* fft_init(int size, float* realInputBuff, float* imagInputBuff, flo
  *
  *			Computes complex FFT
  * 
- * @param	fft - pointer to fft_config_t to be FFT'd
+ * @param	realInput
  *
  * @return	void (but the fft->output will be filled)
  *

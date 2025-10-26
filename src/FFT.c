@@ -76,8 +76,7 @@ void fft_free(fft_config_t* fft)
 	free(fft);
 }
 
-void fft_execute(float* realInput, float* imagInput, float* realOutput, float* imagOutput, int N)
-{
+void fft_execute(float* realInput, float* imagInput, float* realOutput, float* imagOutput, int N) {
 	//there's already a power of two check in fft_init so we don't gotta do it here.
 	if(N == 1)
 	{
@@ -110,7 +109,7 @@ void fft_execute(float* realInput, float* imagInput, float* realOutput, float* i
 
 	//goin next recursion
 	fft_execute(realInEven, imagInEven, realOutEven, imagOutEven, half);
-	fft_execute(realInEven, imagInEven, realOutEven, imagOutEven, half);
+	fft_execute(realInOdd, imagInOdd, realOutOdd, imagOutOdd, half);
 
 	for(int k = 0; k < half; k++)
 	{
@@ -118,16 +117,13 @@ void fft_execute(float* realInput, float* imagInput, float* realOutput, float* i
 		float twiddleFactorReal = cosf(theta);
 		float twiddleFactorImag = sinf(theta);
 
-		float realTwiddledOdd = twiddleFactorReal * realInOdd[k] - twiddleFactorImag * imagInOdd[k];
-		float imagTwiddledOdd = twiddleFactorReal * imagInOdd[k] + twiddleFactorImag * realInOdd[k];
+		float realTwiddledOdd = twiddleFactorReal * realOutOdd[k] - twiddleFactorImag * imagOutOdd[k];
+		float imagTwiddledOdd = twiddleFactorReal * imagOutOdd[k] + twiddleFactorImag * realOutOdd[k];
 
-		float realEven = realInEven[k];
-		float imagEven = imagInEven[k];
-
-		float outReal_k     = realEven + realTwiddledOdd;
-		float outImag_k     = imagEven + imagTwiddledOdd;
-		float outReal_kHalf = realEven - realTwiddledOdd;
-		float outImag_kHalf = imagEven - imagTwiddledOdd;
+		float outReal_k     = realOutEven[k] + realTwiddledOdd;
+		float outImag_k     = imagOutEven[k] + imagTwiddledOdd;
+		float outReal_kHalf = realOutEven[k] - realTwiddledOdd;
+		float outImag_kHalf = imagOutEven[k] - imagTwiddledOdd;
 
 		realOutput[k]        = outReal_k;
 		realOutput[k + half] = outReal_kHalf;
@@ -135,4 +131,9 @@ void fft_execute(float* realInput, float* imagInput, float* realOutput, float* i
 		imagOutput[k + half] = outImag_kHalf;
 	}
 
+	//Free them bruh
+	free(realInEven); free(realInOdd);
+	free(imagInEven); free(imagInOdd);
+	free(realOutEven); free(realOutOdd);
+	free(imagOutEven); free(imagOutOdd);
 }
