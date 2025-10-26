@@ -102,7 +102,7 @@ void fft_execute(float* realInput, float* imagInput, float* realOutput, float* i
 		imagInOdd[i]  = imagInput[2 * i + 1];
 	}
 
-	//creating ouitput arrays for next recursion iteration
+	//creating output arrays for next recursion iteration
 	float* realOutEven = malloc(half * sizeof(float));
 	float* realOutOdd = malloc(half * sizeof(float));
 	float* imagOutEven = malloc(half * sizeof(float));
@@ -118,11 +118,21 @@ void fft_execute(float* realInput, float* imagInput, float* realOutput, float* i
 		float twiddleFactorReal = cosf(theta);
 		float twiddleFactorImag = sinf(theta);
 
-		float oddTwiddledReal = twiddleFactorReal * realInOdd[k] - twiddleFactorImag * imagInOdd[k];
-		float oddTwiddledImag = twiddleFactorReal * imagInOdd[k] + twiddleFactorImag * realInOdd[k];
+		float realTwiddledOdd = twiddleFactorReal * realInOdd[k] - twiddleFactorImag * imagInOdd[k];
+		float imagTwiddledOdd = twiddleFactorReal * imagInOdd[k] + twiddleFactorImag * realInOdd[k];
 
+		float realEven = realInEven[k];
+		float imagEven = imagInEven[k];
 
+		float outReal_k     = realEven + realTwiddledOdd;
+		float outImag_k     = imagEven + imagTwiddledOdd;
+		float outReal_kHalf = realEven - realTwiddledOdd;
+		float outImag_kHalf = imagEven - imagTwiddledOdd;
 
+		realOutput[k]        = outReal_k;
+		realOutput[k + half] = outReal_kHalf;
+		imagOutput[k]        = outImag_k;
+		imagOutput[k + half] = outImag_kHalf;
 	}
 
 }
