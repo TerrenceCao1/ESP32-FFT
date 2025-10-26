@@ -115,6 +115,13 @@ void fft_execute(float* realInput, float* imagInput, float* realOutput, float* i
 	for(int k = 0; k < half; k++)
 	{
 		float theta = -2.0 * PI * k / N;
+		float twiddleFactorReal = cosf(theta);
+		float twiddleFactorImag = sinf(theta);
+
+		float oddTwiddledReal = twiddleFactorReal * realInOdd[k] - twiddleFactorImag * imagInOdd[k];
+		float oddTwiddledImag = twiddleFactorReal * imagInOdd[k] + twiddleFactorImag * realInOdd[k];
+
+
 
 	}
 
