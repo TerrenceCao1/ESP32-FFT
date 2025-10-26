@@ -11,8 +11,10 @@
 typedef struct fft_config_t
 {
 	int size; //must be power of 2
-	float* input;
-	float* output;
+	float* realInput;
+	float* imagInput;
+	float* realOutput;
+	float* imagOutput;
 	float* twiddleFactors;
 }fft_config_t;
 
@@ -32,31 +34,31 @@ typedef struct fft_config_t
  * @return	pointer to initiated fft_config_t fft structure. 
  *
  */
-fft_config_t* fft_init(int size, float* inputBuff, float* outputBuff);
+fft_config_t* fft_init(int size, float* realInputBuff, float* imagInputBuff, float* realOutputBuff, float* imagOutputBuff);
 
 /*
- * @brief	Naive implementation of Real Valued DFT
+ * @brief	Radix-2 Cooley-Tukey Fast Fourier Transform
  *
- *			Computes the discrete Fourier Transform (in N^2 time)
- *
- * @param	fft - pointer to fft_config_t which the FFT will be performed on
- *
- * @return	void (but the fft->output will be filled)
- *
- */
-void dft_execute(fft_config_t* fft);
-
-/*
- * @brief	Real Fast Fourier Transform
- *
- *			Computes real FFT (in N(logN) time)
+ *			Computes complex FFT
  * 
  * @param	fft - pointer to fft_config_t to be FFT'd
  *
  * @return	void (but the fft->output will be filled)
  *
  */
-void fft_execute(fft_config_t* fft); 
+void fft_execute(float* realInput, float* imagInput, float* realOutput, float* imagOutput, int N);
+
+/*
+ * @brief	REAL Radix-2 Cooley-Tukey Fast Fourier Transform
+ *
+ *			Computes real FFT
+ * 
+ * @param	fft - pointer to fft_config_t to be FFT'd
+ *
+ * @return	void (but the fft->output will be filled)
+ *
+ */
+void real_fft_execute(fft_config_t* fft);
 
 /*
  * @brief	Frees all memory allocated by fft_init
@@ -69,6 +71,5 @@ void fft_execute(fft_config_t* fft);
  * 
  */
 void fft_free(fft_config_t* fft);
-
 
 #endif //FFT_H
