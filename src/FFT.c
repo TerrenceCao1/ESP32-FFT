@@ -137,3 +137,15 @@ void fft_execute(float* realInput, float* imagInput, float* realOutput, float* i
 	free(realOutEven); free(realOutOdd);
 	free(imagOutEven); free(imagOutOdd);
 }
+
+void real_fft_execute(fft_config_t* fft)
+{
+	float* zeroArr = calloc(fft->size, sizeof(float)); 
+	if(!zeroArr)
+	{
+		free(zeroArr);
+		return;
+	}
+	fft_execute(fft->realInput, zeroArr, fft->realOutput, fft->imagOutput, fft->size);
+	free(zeroArr);
+}
