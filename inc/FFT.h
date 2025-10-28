@@ -15,7 +15,8 @@ typedef struct fft_config_t
 	float* imagInput;
 	float* realOutput;
 	float* imagOutput;
-	float* twiddleFactors;
+	float* realTwiddleFactors;
+	float* imagTwiddleFactors;
 }fft_config_t;
 
 /* 
@@ -46,7 +47,7 @@ fft_config_t* fft_init(int size, float* realInputBuff, float* imagInputBuff, flo
  * @return	void (but the fft->output will be filled)
  *
  */
-void fft_execute(float* realInput, float* imagInput, float* realOutput, float* imagOutput, int N);
+void fft_execute(int N, float* realInput, float* imagInput, float* realOutput, float* imagOutput, float* realTwiddles, float* imagTwiddiles);
 
 /*
  * @brief	REAL Radix-2 Cooley-Tukey Fast Fourier Transform
