@@ -11,7 +11,7 @@ Ultra-lightweight FFT (Fast Fourier Transform) implementation for the ESP32 micr
 - Straightforward and user friendly API
 - Compatibility with ESP-IDF/Arduino
 
-Perfect for **[Audio Visualization](github.com/TerrenceCao1/AudioVis)**, **Signal Analysis**, or any application in need of frequency decomposition on a microcontroller.
+Perfect for **[Audio Visualization](https://github.com/TerrenceCao1/AudioVis)**, **Signal Analysis**, or any application in need of frequency decomposition on a microcontroller.
 
 ## Features
 
