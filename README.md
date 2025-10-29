@@ -44,6 +44,5 @@ Include in your CMake, or Makefile, or just remember it when you gcc.
 > It's a little slower than the commercial ones for sale so these are some optimizations I will do:
 
 - Bit-Reversal Reordering
-- Precalculating Twiddle values
 - Adding radix-4/8
 - Precoding Trivial Recursion Cases
