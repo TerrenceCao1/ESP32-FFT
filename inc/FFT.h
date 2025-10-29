@@ -5,6 +5,7 @@
 #include <complex.h>
 #include <math.h>
 #include <stdlib.h>
+#include <string.h>
 
 #define PI 3.1415926538979323846264f
 
@@ -72,5 +73,9 @@ void real_fft_execute(fft_config_t* fft);
  * 
  */
 void fft_free(fft_config_t* fft);
+
+static void reorder(float* inputArr, int size);
+
+static unsigned int bit_reverse(unsigned int x, unsigned int bits);
 
 #endif //FFT_H

@@ -40,16 +40,16 @@ fft_config_t* fft_init(int size, float* realInputBuff, float* imagInputBuff, flo
 	}
 	else
 	{
-		conf->realOutput = (float*)malloc(conf->size * sizeof(float) * 2); //for a complex fft, sizeof(output) == sizeof(input).
+		conf->realOutput = (float*)malloc(conf->size * sizeof(float)); //for a complex fft, sizeof(output) == sizeof(input).
 	}
 	
 	if(imagOutputBuff != NULL)
 	{
-		conf->imagOutput = realOutputBuff;
+		conf->imagOutput = imagOutputBuff;
 	}
 	else
 	{
-		conf->imagOutput = (float*)malloc(conf->size * sizeof(float) * 2); //for a complex fft, sizeof(output) == sizeof(input).
+		conf->imagOutput = (float*)malloc(conf->size * sizeof(float)); //for a complex fft, sizeof(output) == sizeof(input).
 	}
 
 	//allocate and compute twiddle values
@@ -148,6 +148,9 @@ void fft_execute(int N, float* realInput, float* imagInput, float* realOutput, f
 	free(imagInEven); free(imagInOdd);
 	free(realOutEven); free(realOutOdd);
 	free(imagOutEven); free(imagOutOdd);
+	free(realTwidEven); free(realTwidOdd);
+	free(imagTwidEven); free(imagTwidOdd);
+
 }
 
 void real_fft_execute(fft_config_t* fft)
@@ -155,9 +158,35 @@ void real_fft_execute(fft_config_t* fft)
 	float* zeroArr = calloc(fft->size, sizeof(float)); 
 	if(!zeroArr)
 	{
-		free(zeroArr);
 		return;
 	}
 	fft_execute(fft->size, fft->realInput, zeroArr, fft->realOutput, fft->imagOutput, fft->realTwiddleFactors, fft->imagTwiddleFactors);
 	free(zeroArr);
+}
+
+static void reorder(float* inputArr, int size) {
+	if((size & (size-1)) != 0)
+	{
+		return;
+	}
+
+	float* copyArr = malloc(sizeof(float) * size);
+	int bits = (int)log2(size);
+	for(int i = 0; i < size; i++)
+	{
+		copyArr[i] = inputArr[bit_reverse(i, bits)];
+	}
+
+	memcpy(inputArr, copyArr, sizeof(float) * size);
+}
+
+static unsigned int bit_reverse(unsigned int x, unsigned int bits)
+{
+	unsigned int reversed = 0;
+	for(int i = 0; i < bits; i++)
+	{
+		reversed = (reversed << 1) | (x & 1);
+		x >>= 1;
+	}
+	return reversed;
 }
