@@ -77,13 +77,7 @@ void fft_free(fft_config_t* fft)
 	free(fft->imagTwiddleFactors);
 	free(fft);
 }
-
-//TODO: OPTIMIZATIONS:
-//	bit-reversal reordering
-//	Precalculate Twiddles
-//	radix-4/8 maybe?
-//	Precoding Trivial Recursion Cases
-void fft_execute(int N, float* realInput, float* imagInput, float* realOutput, float* imagOutput, float* realTwiddles, float* imagTwiddles)
+void fft_execute(float* realInput, float* imagInput, float* realOutput, float* imagOutput, int N)
 {
 	//there's already a power of two check in fft_init so we don't gotta do it here.
 	if(N == 1)
@@ -100,10 +94,6 @@ void fft_execute(int N, float* realInput, float* imagInput, float* realOutput, f
 	float* realInOdd = malloc(half * sizeof(float));
 	float* imagInEven = malloc(half * sizeof(float));
 	float* imagInOdd = malloc(half * sizeof(float));
-	float* realTwidEven = malloc(half * sizeof(float));
-	float* imagTwidEven = malloc(half * sizeof(float));
-	float* realTwidOdd = malloc(half * sizeof(float));
-	float* imagTwidOdd = malloc(half * sizeof(float));
 
 	for(int i = 0; i < half; i++)
 	{
@@ -111,10 +101,6 @@ void fft_execute(int N, float* realInput, float* imagInput, float* realOutput, f
 		realInOdd[i]  = realInput[2 * i + 1];
 		imagInEven[i] = imagInput[2 * i];
 		imagInOdd[i]  = imagInput[2 * i + 1];
-		realTwidEven[i] = realTwiddles[2 * i];
-		imagTwidEven[i] = imagTwiddles[2 * i];
-		realTwidOdd[i] = realTwiddles[2 * i + 1];
-		imagTwidOdd[i] = imagTwiddles[2 * i + 1];
 	}
 
 	//creating output arrays for next recursion iteration
@@ -124,18 +110,25 @@ void fft_execute(int N, float* realInput, float* imagInput, float* realOutput, f
 	float* imagOutOdd = malloc(half * sizeof(float));
 
 	//goin next recursion
-	fft_execute(half, realInEven, imagInEven, realOutEven, imagOutEven, realTwidEven, imagTwidEven);
-	fft_execute(half, realInOdd, imagInOdd, realOutOdd, imagOutOdd, realTwidOdd, imagTwidOdd);
+	fft_execute(realInEven, imagInEven, realOutEven, imagOutEven, half);
+	fft_execute(realInEven, imagInEven, realOutEven, imagOutEven, half);
 
 	for(int k = 0; k < half; k++)
 	{
-		float realTwiddledOdd = realTwiddles[k] * realOutOdd[k] - imagTwiddles[k] * imagOutOdd[k];
-		float imagTwiddledOdd = realTwiddles[k] * imagOutOdd[k] + imagTwiddles[k] * realOutOdd[k];
+		float theta = -2.0 * PI * k / N;
+		float twiddleFactorReal = cosf(theta);
+		float twiddleFactorImag = sinf(theta);
 
-		float outReal_k     = realOutEven[k] + realTwiddledOdd;
-		float outImag_k     = imagOutEven[k] + imagTwiddledOdd;
-		float outReal_kHalf = realOutEven[k] - realTwiddledOdd;
-		float outImag_kHalf = imagOutEven[k] - imagTwiddledOdd;
+		float realTwiddledOdd = twiddleFactorReal * realInOdd[k] - twiddleFactorImag * imagInOdd[k];
+		float imagTwiddledOdd = twiddleFactorReal * imagInOdd[k] + twiddleFactorImag * realInOdd[k];
+
+		float realEven = realInEven[k];
+		float imagEven = imagInEven[k];
+
+		float outReal_k     = realEven + realTwiddledOdd;
+		float outImag_k     = imagEven + imagTwiddledOdd;
+		float outReal_kHalf = realEven - realTwiddledOdd;
+		float outImag_kHalf = imagEven - imagTwiddledOdd;
 
 		realOutput[k]        = outReal_k;
 		realOutput[k + half] = outReal_kHalf;
@@ -143,16 +136,8 @@ void fft_execute(int N, float* realInput, float* imagInput, float* realOutput, f
 		imagOutput[k + half] = outImag_kHalf;
 	}
 
-	//Free them bruh
-	free(realInEven); free(realInOdd);
-	free(imagInEven); free(imagInOdd);
-	free(realOutEven); free(realOutOdd);
-	free(imagOutEven); free(imagOutOdd);
-	free(realTwidEven); free(realTwidOdd);
-	free(imagTwidEven); free(imagTwidOdd);
-
 }
-
+/*
 void real_fft_execute(fft_config_t* fft)
 {
 	float* zeroArr = calloc(fft->size, sizeof(float)); 
@@ -160,11 +145,57 @@ void real_fft_execute(fft_config_t* fft)
 	{
 		return;
 	}
-	fft_execute(fft->size, fft->realInput, zeroArr, fft->realOutput, fft->imagOutput, fft->realTwiddleFactors, fft->imagTwiddleFactors);
+	not_in_place_fft_execute(fft->size, fft->realInput, zeroArr, fft->realOutput, fft->imagOutput, fft->realTwiddleFactors, fft->imagTwiddleFactors);
 	free(zeroArr);
+}*/
+
+void fft_iterative(int size, float* realInput, float* imagInput)
+{
+	reorder(realInput, size);
+	reorder(imagInput, size);
+
+	for(int step = 1; step <= (int)log2(size); step++)
+	{
+		int m = 1 << step;
+		int half_m = m >> 1;
+
+		//twiddles (w_m_r and w_m_i are real and imaginary twiddles AT THIS STAGE)
+		float theta = -2.0f * PI / m;
+		float w_m_r = cosf(theta);
+		float w_m_i = sinf(theta);
+
+		for(int k = 0; k < size; k += m)
+		{
+			//creating complex number: 1 + 0i as a base multiplier for w_m to get next twiddle
+			float w_r = 1.0f;
+			float w_i = 0.0f;
+
+			for(int j = 0; j < half_m; j++)
+			{
+				int i_even = k + j;
+				int i_odd = k + j + half_m;
+
+				float t_real = w_r * realInput[i_odd] - w_i * imagInput[i_odd];
+				float t_imag = w_r * imagInput[i_odd] + w_i * realInput[i_odd];
+
+				float u_real = realInput[i_even];
+				float u_imag = imagInput[i_even];
+
+				realInput[i_even] = u_real + t_real;
+				imagInput[i_even] = u_imag + t_imag;
+				realInput[i_odd] = u_real - t_real;
+				imagInput[i_odd] = u_imag - t_imag;
+
+				float tmp_real = w_r * w_m_r - w_i * w_m_i;
+				float tmp_imag = w_r * w_m_i + w_i * w_m_r;
+				w_r = tmp_real;
+				w_i = tmp_imag;
+			}
+		}
+	}
 }
 
-static void reorder(float* inputArr, int size) {
+void reorder(float* inputArr, int size) {
 	if((size & (size-1)) != 0)
 	{
 		return;
@@ -178,9 +209,10 @@ static void reorder(float* inputArr, int size) {
 	}
 
 	memcpy(inputArr, copyArr, sizeof(float) * size);
+	free(copyArr);
 }
 
-static unsigned int bit_reverse(unsigned int x, unsigned int bits)
+unsigned int bit_reverse(unsigned int x, unsigned int bits)
 {
 	unsigned int reversed = 0;
 	for(int i = 0; i < bits; i++)

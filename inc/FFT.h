@@ -48,7 +48,7 @@ fft_config_t* fft_init(int size, float* realInputBuff, float* imagInputBuff, flo
  * @return	void (but the fft->output will be filled)
  *
  */
-void fft_execute(int N, float* realInput, float* imagInput, float* realOutput, float* imagOutput, float* realTwiddles, float* imagTwiddiles);
+void fft_execute(float* realInput, float* imagInput, float* realOutput, float* imagOutput, int N);
 
 /*
  * @brief	REAL Radix-2 Cooley-Tukey Fast Fourier Transform
@@ -74,8 +74,23 @@ void real_fft_execute(fft_config_t* fft);
  */
 void fft_free(fft_config_t* fft);
 
-static void reorder(float* inputArr, int size);
+/*
+ * @brief	Executes in-place fft (with O(1) space complexity)
+ *			
+ *			Uses index bit_reversing to calculate the FFT in-place and save a lot of space
+ *
+ * @param	size - size of the FFT
+ * @param	realInput - pointer to float array of length size. contains real elements
+ * @param	imagInput - pointer to float array of length size. contains imaginary elements
+ *
+ * @return	void, but realInput/imagInput will be filled with 
+ * 
+ *
+ * */
+void fft_iterative(int size, float* realInput, float* imagInput);
 
-static unsigned int bit_reverse(unsigned int x, unsigned int bits);
+void reorder(float* inputArr, int size);
+
+unsigned int bit_reverse(unsigned int x, unsigned int bits);
 
 #endif //FFT_H
