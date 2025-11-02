@@ -34,15 +34,4 @@ Include in your CMake, or Makefile, or just remember it when you gcc.
 ```
 
 ## THINGS I NEEDA WORK ON
-
-> Some README/Github/Project Stuff
-
-- REFACTORING CAUSE MY REPO IS SO MESSY!
-- Create an examples folder
-- Write a README section on **Usage**
 - Run performance tests/limitations
-
-> It's a little slower than the commercial ones for sale so these are some optimizations I will do:
-
-- Adding radix-4/8
-- Precoding Trivial Recursion Cases
