@@ -1,6 +1,12 @@
 #include "../inc/FFT.h"
 
-fft_config_t* fft_init(int size, float* realInputBuff, float* imagInputBuff, float* realOutputBuff, float* imagOutputBuff)
+//HELPERS!
+static void reorder(float* inputArr, int size);
+
+static unsigned int bit_reverse(unsigned int x, unsigned int bits);
+
+
+fft_config_t* fft_init(int size, float* realInputBuff, float* imagInputBuff)
 {
 	fft_config_t* conf = (fft_config_t*)malloc(sizeof(fft_config_t));
 
@@ -21,7 +27,7 @@ fft_config_t* fft_init(int size, float* realInputBuff, float* imagInputBuff, flo
 	}
 	else
 	{
-		conf->realInput = (float*)malloc(conf->size * sizeof(float));
+		conf->realInput = (float*)calloc(conf->size, sizeof(float));
 	}
 
 	if(imagInputBuff != NULL)
@@ -30,38 +36,7 @@ fft_config_t* fft_init(int size, float* realInputBuff, float* imagInputBuff, flo
 	}
 	else
 	{
-		conf->imagInput = (float*)malloc(conf->size * sizeof(float));
-	}
-
-	//allocate fft output buffers
-	if(realOutputBuff != NULL)
-	{
-		conf->realOutput = realOutputBuff;
-	}
-	else
-	{
-		conf->realOutput = (float*)malloc(conf->size * sizeof(float)); //for a complex fft, sizeof(output) == sizeof(input).
-	}
-	
-	if(imagOutputBuff != NULL)
-	{
-		conf->imagOutput = imagOutputBuff;
-	}
-	else
-	{
-		conf->imagOutput = (float*)malloc(conf->size * sizeof(float)); //for a complex fft, sizeof(output) == sizeof(input).
-	}
-
-	//allocate and compute twiddle values
-	conf->realTwiddleFactors = (float*)malloc(conf->size * sizeof(float));
-	conf->imagTwiddleFactors = (float*)malloc(conf->size * sizeof(float));
-
-	for(int k = 0; k < conf->size; k++)
-	{
-		//real
-		conf->realTwiddleFactors[k] = cosf(2 * PI * k / conf->size);
-		//imaginary
-		conf->imagTwiddleFactors[k] = sinf(-2 * PI * k / conf->size);
+		conf->imagInput = (float*)calloc(conf->size, sizeof(float));
 	}
 
 	return conf;
@@ -71,12 +46,9 @@ void fft_free(fft_config_t* fft)
 {
 	free(fft->realInput);
 	free(fft->imagInput);
-	free(fft->realOutput);
-	free(fft->imagOutput);
-	free(fft->realTwiddleFactors);
-	free(fft->imagTwiddleFactors);
 	free(fft);
 }
+
 void fft_execute(float* realInput, float* imagInput, float* realOutput, float* imagOutput, int N)
 {
 	//there's already a power of two check in fft_init so we don't gotta do it here.
@@ -137,17 +109,12 @@ void fft_execute(float* realInput, float* imagInput, float* realOutput, float* i
 	}
 
 }
-/*
+
 void real_fft_execute(fft_config_t* fft)
 {
-	float* zeroArr = calloc(fft->size, sizeof(float)); 
-	if(!zeroArr)
-	{
-		return;
-	}
-	not_in_place_fft_execute(fft->size, fft->realInput, zeroArr, fft->realOutput, fft->imagOutput, fft->realTwiddleFactors, fft->imagTwiddleFactors);
-	free(zeroArr);
-}*/
+	memset(fft->imagInput, 0, fft->size * sizeof(float));
+	fft_iterative(fft->size, fft->realInput, fft->imagInput);
+}
 
 void fft_iterative(int size, float* realInput, float* imagInput)
 {
