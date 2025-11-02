@@ -14,10 +14,6 @@ typedef struct fft_config_t
 	int size; //must be power of 2
 	float* realInput;
 	float* imagInput;
-	float* realOutput;
-	float* imagOutput;
-	float* realTwiddleFactors;
-	float* imagTwiddleFactors;
 }fft_config_t;
 
 /* 
@@ -36,19 +32,7 @@ typedef struct fft_config_t
  * @return	pointer to initiated fft_config_t fft structure. 
  *
  */
-fft_config_t* fft_init(int size, float* realInputBuff, float* imagInputBuff, float* realOutputBuff, float* imagOutputBuff);
-
-/*
- * @brief	Radix-2 Cooley-Tukey Fast Fourier Transform
- *
- *			Computes complex FFT
- * 
- * @param	realInput
- *
- * @return	void (but the fft->output will be filled)
- *
- */
-void fft_execute(float* realInput, float* imagInput, float* realOutput, float* imagOutput, int N);
+fft_config_t* fft_init(int size, float* realInputBuff, float* imagInputBuff);
 
 /*
  * @brief	REAL Radix-2 Cooley-Tukey Fast Fourier Transform
@@ -88,9 +72,5 @@ void fft_free(fft_config_t* fft);
  *
  * */
 void fft_iterative(int size, float* realInput, float* imagInput);
-
-void reorder(float* inputArr, int size);
-
-unsigned int bit_reverse(unsigned int x, unsigned int bits);
 
 #endif //FFT_H
